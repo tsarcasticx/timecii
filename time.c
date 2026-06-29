@@ -1,15 +1,16 @@
 #include "utils/ascii.h"
+#include "utils/var.h"
 #include "utils/helper.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
 #include <stdio.h>
 
-unsigned int seconds, minutes, hours;
+
 char chars[] = "`^\",:;Il!i~+_-?][}(1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao#MW&8%B@S";
 
 void signalHandler(int sig) {
-  printf("\nProcess is terminated in %d hours, %d minutes, and %d seconds\n", hours, minutes, seconds);
+  printf("\nProcess is terminated: %d hours, %d minutes, and %d seconds\n", hours, minutes, seconds);
   _exit(sig);
 }
 void backwardCounting(unsigned int durations){
@@ -42,22 +43,15 @@ void forwardCounting(){
 }
 
 int main(int argc, char *argv[]) {
-  long *durations = malloc(sizeof(long));
-  if (durations == NULL) {
-    return 1;
-  }
+  long durations; // an imitation for unsigned int. I hope you understand
 
   switch (argc) {
     case 1:
-      free(durations);
-      durations = NULL;
       forwardCounting();
       break;
     case 2:
-      *durations = strtol(argv[1], NULL, 10);
-      (*durations <= 0) ? show_help() : backwardCounting((unsigned int)*durations);
-      free(durations);
-      durations = NULL;
+      durations = strtol(argv[1], NULL, 10);
+      (durations <= 0) ? show_help() : backwardCounting((unsigned int)durations);
       break;
     default:
       show_help();
