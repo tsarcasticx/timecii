@@ -1,11 +1,12 @@
-#include <asm-generic/ioctls.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/ioctl.h>
-#include <ncurses.h>
 #include "ascii.h"
+#include <ncurses.h>
 
-void initascii(char nominal, char * rendered[]){
+char str_second[3], str_minute[3], str_hour[3];
+char buffer[9] = "";
+char *colon[5], *h1[5], *h2[5], *m1[5], *m2[5], *s1[5], *s2[5];
+char *ascii_all[5] = {"","","","",""};
+
+void ascii_renderer(char nominal, char * rendered[]){
   // char *
   switch (nominal) {
   case '0':
@@ -90,25 +91,33 @@ void initascii(char nominal, char * rendered[]){
   }
 }
 
-void fallback(){
-  //
-}
+void ascat(char *str){
+  ascii_renderer(str[0], h1);
+  ascii_renderer(str[1], h2);
+  ascii_renderer(str[2], colon);
+  ascii_renderer(str[3], m1);
+  ascii_renderer(str[4], m2);
+  ascii_renderer(str[6], s1);
+  ascii_renderer(str[7], s2);}
 
-void interface(unsigned int hours, unsigned int minutes, unsigned int seconds){
-  char str_hour[3]; snprintf(str_hour, 2 + 1, "%u", hours % 100);
-  char str_minute[3]; snprintf(str_minute, 2 + 1, "%02u", minutes % 60);
-  char str_second[3]; snprintf(str_second, 2 + 1, "%02u", seconds % 60);
-  char colon[5], h1[5], h2[5], m1[5], m2[5], s1[5], s2[5];
-  char str_all[9] = "";
-  strcat(str_all, str_hour);
-  strcat(str_all, ":");
-  strcat(str_all, str_minute);
-  strcat(str_all, ":");
-  strcat(str_all, str_second);
-
-
-  struct winsize win;
-  ioctl(0, TIOCGWINSZ, &win);
-  int terminal_height = win.ws_row, terminal_width = win.ws_col;
-
+void display(unsigned int seconds){
+  unsigned int minutes = (unsigned int)seconds/60, hours = (unsigned int)seconds/3600;
+  snprintf(str_hour, 2 + 1, "%u", hours % 100);       // |
+  snprintf(str_minute, 2 + 1, "%02u", minutes % 60);  // | converting unsigned integer into string
+  snprintf(str_second, 2 + 1, "%02u", seconds % 60);  // |
+  strcat(buffer, str_hour);
+  strcat(buffer, ":");
+  strcat(buffer, str_minute);
+  strcat(buffer, ":");
+  strcat(buffer, str_second);   // the final result of concatination process
+  ascat(buffer);
+  if (LINES < 14 || COLS < 50) {
+    mvaddstr(LINES/2, (COLS - 48)/2, buffer); // entering the fallback mode
+  }else {
+    for (int i = 0; i < 5; i++) {
+      mvprintw((LINES/2) - 2 + i, (COLS - 48)/2,"%s%s%s%s%s%s%s%s\n", h1[i], h2[i], colon[i], m1[i], m2[i], colon[i], s1[i], s2[i]);
+    }
+  }
+  refresh();
+  strcpy(buffer, ""); // emptying the buffer
 }

@@ -1,31 +1,21 @@
 #include "utils/ascii.h"
 #include "utils/var.h"
 #include "utils/helper.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <signal.h>
-#include <stdio.h>
-
-
-char chars[] = "`^\",:;Il!i~+_-?][}(1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao#MW&8%B@S";
 
 void signalHandler(int sig) {
   printf("\nProcess is terminated: %d hours, %d minutes, and %d seconds\n", hours, minutes, seconds);
+  endwin();
   _exit(sig);
 }
 void backwardCounting(unsigned int durations){
   seconds = durations;
-  int i = 0;
-  signal(SIGINT, signalHandler);
   do {
-    i++;
-    minutes = (unsigned int)seconds/60;
-    hours = (unsigned int)seconds/3600;
-    system("clear");
-    printf("%02d:%02d:%02d\n", hours, minutes % 60, seconds % 60);
+    signal(SIGINT, signalHandler);
+    clear();
+    display(seconds);
     sleep(1);
     seconds -= 1;
-  } while(i <durations);
+  } while(seconds > 0);
 
   printf("%d\n", durations);
 }
@@ -44,6 +34,9 @@ void forwardCounting(){
 
 int main(int argc, char *argv[]) {
   long durations; // an imitation for unsigned int. I hope you understand
+  initscr();
+  raw();
+  noecho();
 
   switch (argc) {
     case 1:
@@ -57,5 +50,7 @@ int main(int argc, char *argv[]) {
       show_help();
       break;
   }
+
+  endwin();
   return 0;
 }
